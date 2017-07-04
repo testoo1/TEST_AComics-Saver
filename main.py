@@ -1,12 +1,4 @@
-def load_user_config():
-    pass
-
-def load_prog_config():
-    pass 
-
-def load_config_files():
-    load_user_config()
-    load_prog_config()  
+import config_files
 
 def update_config():
     # for item in user_config:
@@ -48,8 +40,11 @@ def download_comics():
 # ----------------------------------------------------------------------------
 
 def main():
-    
-    load_config_files() 
+    USER_CONFIG_FILE = "user.config"
+    PROG_CONFIG_FILE = "prog.config"
+
+    user_config, prog_config = config_files.load(USER_CONFIG_FILE,
+                                                 PROG_CONFIG_FILE)
     update_config()
     # -----------------
     download_comics()
