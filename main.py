@@ -1,10 +1,54 @@
 import config_files
+import re
 
-def update_config():
-    # for item in user_config:
-    #   if item in prog_config:
-    #       update_prog_config()
-    pass
+reg_URL = re.compile(r"http[s]?://((\w+.\w+)/([~\w]+))")
+
+def item_in_prog_config(user_item,prog_item):
+    user_link = reg_URL.match(user_item['link'])
+    prog_link = reg_URL.match(prog_item['link'])
+
+    if not user_link or not prog_link:
+        return False
+    return True if user_link.group(1) == prog_link.group(1) else False
+
+def add_field(item, key, value):
+    if key not in item:
+        item[key] = value
+
+def add_missing_field(prog_item):
+    add_field(prog_item, 'page_first'  , 1)
+    add_field(prog_item, 'page_current', 1)
+    add_field(prog_item, 'page_last'   , None)
+
+    match_obj         = reg_URL.match(prog_item['link'])
+
+# small hack: replace already existing link  to link with discarded page number
+# example: https://acomics.ru/~4pairs/134 ->
+#          https://acomics.ru/~4pairs
+    prog_item['link'] = match_obj.group(0)
+
+    domain       = match_obj.group(2)
+    relative_URL = match_obj.group(3)
+    add_field(prog_item, 'doman', domain)
+    add_field(prog_item, 'relative_URL', relative_URL)
+    
+    # TODO  
+    # if "name" not in prog_item:
+    #   download page and get name for comics
+
+def update_config(user_config, prog_config):
+    for user_item in user_config:
+        need_append = True
+        for prog_item in prog_config:
+            if item_in_prog_config(user_item,prog_item):
+                prog_item.update(user_item)
+                need_append = False
+                break
+        # user_item['link'][:4] == 'http' 
+        # It's temporary hack (to discard example data block)
+        if need_append and user_item['link'][:4] == 'http':
+            prog_config.append(user_item)
+            add_missing_field(prog_config[-1])
 
 def set_save_path():
     # if not folder on path item.domain + item.name exist
@@ -45,7 +89,11 @@ def main():
 
     user_config, prog_config = config_files.load(USER_CONFIG_FILE,
                                                  PROG_CONFIG_FILE)
-    update_config()
+    update_config(user_config, prog_config)
+
+    # temp ->
+    config_files.config.dump(prog_config, open('prog.config','w', encoding='utf-8'))
+    # temp <-
     # -----------------
     download_comics()
 
