@@ -31,7 +31,7 @@ def add_missing_field(prog_item):
 
     domain       = match_obj.group(2)
     relative_URL = match_obj.group(3)
-    add_field(prog_item, 'doman', domain)
+    add_field(prog_item, 'domain', domain)
     add_field(prog_item, 'relative_URL', relative_URL)
     
     # TODO  
