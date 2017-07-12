@@ -3,7 +3,7 @@ import re
 import urllib.request as request
 import os
 
-reg_URL = re.compile(r"http[s]?://((\w+.\w+)/([~\w]+))")
+reg_URL = re.compile(r"http[s]?://((\S+.\w+)/([~\S]+))")
 
 def item_in_prog_config(user_item,prog_item):
     user_link = reg_URL.match(user_item['link'])
