@@ -1,5 +1,7 @@
 import config_files
 import re
+import urllib.request as request
+import os
 
 reg_URL = re.compile(r"http[s]?://((\w+.\w+)/([~\w]+))")
 
@@ -50,11 +52,24 @@ def update_config(user_config, prog_config):
             prog_config.append(user_item)
             add_missing_field(prog_config[-1])
 
-def set_save_path():
-    # if not folder on path item.domain + item.name exist
-    # create folder
-    # return path to folder
-    pass
+def set_directory(name):
+    if not os.path.isdir(name):
+        try:
+            os.mkdir(name)
+        except:
+            print('-'*78)
+            print("ERROR: Can't create \"{}\" folder".format(name))
+            print('-'*78)
+            return None
+    return name
+
+def set_save_path(domain, name):
+    if set_directory(domain) != None:
+        path = "{domain}/{name}/".format(domain = domain, name = name)
+        if set_directory(path) != None:
+            return path
+    return None
+
 
 def get_page():
     pass
@@ -84,18 +99,26 @@ def download_comics():
 # ----------------------------------------------------------------------------
 
 def main():
-    USER_CONFIG_FILE = "user.config"
-    PROG_CONFIG_FILE = "prog.config"
+    # USER_CONFIG_FILE = "user.config"
+    # PROG_CONFIG_FILE = "prog.config"
 
-    user_config, prog_config = config_files.load(USER_CONFIG_FILE,
-                                                 PROG_CONFIG_FILE)
-    update_config(user_config, prog_config)
+    # user_config, prog_config = config_files.load(USER_CONFIG_FILE,
+    #                                              PROG_CONFIG_FILE)
+    # update_config(user_config, prog_config)
 
+    # # temp ->
+    # config_files.config.dump(prog_config, open('prog.config','w', encoding='utf-8'))
+    # # temp <-
+    # # -----------------
+    # download_comics()
+    
     # temp ->
-    config_files.config.dump(prog_config, open('prog.config','w', encoding='utf-8'))
+    temp_domain = "acomics.ru"
+    temp_link   = "https://acomics.ru/~4pairs"
+    temp_name   = "4 пары"
     # temp <-
-    # -----------------
-    download_comics()
+
+    path = set_save_path(temp_domain, temp_name)
 
 if __name__ == '__main__':
     main()
