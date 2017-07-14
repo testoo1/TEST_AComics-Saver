@@ -2,6 +2,8 @@ import config_files
 import re
 import urllib.request as request
 import os
+from threading import Thread
+from queue import Queue
 
 reg_URL = re.compile(r"http[s]?://((\S+.\w+)/([~\S]+))")
 
@@ -169,12 +171,18 @@ def download_comics(item):
 
     item['downloaded_in_this_session'] = 0
 
+def thread_download_comics(threadQueue):
+    download_comics(threadQueue.get())
+    threadQueue.task_done()
+
 # ----------------------------------------------------------------------------
 
 def main():
     USER_CONFIG_FILE = "user.config"
     PROG_CONFIG_FILE = "prog.config"
-
+    
+    MAX_THREADS = 5
+    # ------------------------------------------------------------------------
     try:
         user_config, prog_config = config_files.load(USER_CONFIG_FILE,
                                                      PROG_CONFIG_FILE)
@@ -184,10 +192,18 @@ def main():
     
     update_config(user_config, prog_config)
 
-    # -----------------
+    # ------------------------------------------------------------------------
+    threadQueue = Queue()
+
+    for i in range(MAX_THREADS):
+        Thread(target=thread_download_comics, args=(threadQueue,), daemon=True).start()
+    
     for item in prog_config:
-        download_comics(item)
-        config_files.config.dump(prog_config, open('prog.config','w', encoding='utf-8'))
+        threadQueue.put(item)
+    
+    threadQueue.join()
+    # ------------------------------------------------------------------------
+    config_files.config.dump(prog_config, open('prog.config','w', encoding='utf-8'))
 
 
 # ----------------------------------------------------------------------------
