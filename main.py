@@ -172,8 +172,9 @@ def download_comics(item):
     item['downloaded_in_this_session'] = 0
 
 def thread_download_comics(threadQueue):
-    download_comics(threadQueue.get())
-    threadQueue.task_done()
+    while True:
+        download_comics(threadQueue.get())
+        threadQueue.task_done()
 
 # ----------------------------------------------------------------------------
 
