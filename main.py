@@ -74,10 +74,10 @@ def set_directory(name):
     return name
 
 def set_save_path(item):
-    if set_directory(item['domain']) != None:
+    if set_directory(item['domain']) is not None:
         path = "{domain}/{name}/".format(domain = item['domain'],
                                          name   = item['name'])
-        if set_directory(path) != None:
+        if set_directory(path) is not None:
             return path
     return None
 
@@ -133,7 +133,7 @@ def download_comics(item):
         ERROR("Can't set path for comics \"{name}\"".format(name=item['name']))
         return
 
-    if item['page_first'] != None:
+    if item['page_first'] is not None:
         item['page_current'] = item['page_first']
 
     # small hack: when we start download page we set url with last saved
@@ -143,9 +143,9 @@ def download_comics(item):
                                                   name  =item['relative_URL'],
                                                   page  =item['page_current'])
     while url:
-        if item['page_last'] == None or item['page_current'] <= item['page_last']:
+        if item['page_last'] is None or item['page_current'] <= item['page_last']:
             page  = get_page(url)
-            if page == None:
+            if page is None:
                 ERROR("Can't load page \"{url}\"".format(url=url))
                 return
             # temp ->
@@ -160,7 +160,7 @@ def download_comics(item):
                 #                  and downlad image from it already
                 #   else: it's last page and we need to download it
                 image = get_image(page,item)
-                if image.data != None and image.extension != None:
+                if image.data is not None and image.extension is not None:
                     save_image(image,item)
                     item['page_current'] += 1
                     item['downloaded_in_this_session'] += 1
