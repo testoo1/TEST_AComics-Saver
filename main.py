@@ -167,7 +167,7 @@ def download_comics(item):
                     item['page_current'] += 1
                     item['downloaded_in_this_session'] += 1
         else:
-            return
+            break
 
     item['downloaded_in_this_session'] = 0
 
