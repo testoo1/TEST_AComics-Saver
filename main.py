@@ -138,6 +138,8 @@ def download_comics(item):
     if item['page_first'] is not None:
         item['page_current'] = item['page_first']
 
+    item['downloaded_in_this_session'] = 0
+
     # small hack: when we start download page we set url with last saved
     #             page value. It's help us to check that next page exist
     #             (or we downloaded entire comics in previous session)
@@ -169,7 +171,7 @@ def download_comics(item):
         else:
             break
 
-    item['downloaded_in_this_session'] = 0
+    
 
 def thread_download_comics(threadQueue):
     while not stop:
