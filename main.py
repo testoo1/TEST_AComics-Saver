@@ -4,7 +4,7 @@ import urllib.request as request
 import os
 from threading import Thread
 from queue import Queue
-
+import time
 reg_URL = re.compile(r"http[s]?://((\S+.\w+)/([~\S]+))")
 
 def ERROR(text):
@@ -151,7 +151,7 @@ def download_comics(item):
                 ERROR("Can't load page \"{url}\"".format(url=url))
                 return
             # temp ->
-            print(url)
+            # print(url)
             # temp <-
             url = get_next_page_URL(page)
 
@@ -172,10 +172,24 @@ def download_comics(item):
     item['downloaded_in_this_session'] = 0
 
 def thread_download_comics(threadQueue):
-    while True:
+    while not stop:
         download_comics(threadQueue.get())
         threadQueue.task_done()
 
+def show_UI(config):
+    while not stop:
+        # 80 - console width
+        # 12 - width of "xxxx (+yyyy)"
+        # where xxxx - current page, yyyy - new in this session
+        block_width = 80 - 12
+        os.system('cls')
+        for item in config:
+            print('{name:.<{block_width}}{current:.>4}({new:>+4})'.format(
+                block_width=block_width,
+                name=item['name'],
+                current=item['page_current'],
+                new=item['downloaded_in_this_session']))
+        time.sleep(1)
 # ----------------------------------------------------------------------------
 
 def main():
@@ -195,6 +209,8 @@ def main():
 
     # ------------------------------------------------------------------------
     threadQueue = Queue()
+    global stop
+    stop = False
 
     for i in range(MAX_THREADS):
         Thread(target=thread_download_comics, args=(threadQueue,), daemon=True).start()
@@ -202,11 +218,15 @@ def main():
     for item in prog_config:
         threadQueue.put(item)
     
+    UI = Thread(target=show_UI, args=(prog_config,), daemon=True).start()
+
     threadQueue.join()
+    
+    stop = True
     # ------------------------------------------------------------------------
     config_files.config.dump(prog_config, open('prog.config','w', encoding='utf-8'))
 
-
+    exit = input("\nPress any key for exit...")
 # ----------------------------------------------------------------------------
 if __name__ == '__main__':
     main()
