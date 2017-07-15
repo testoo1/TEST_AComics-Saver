@@ -24,6 +24,12 @@ def add_field(item, key, value):
     if key not in item:
         item[key] = value
 
+def update_page_last_exist(prog_item):
+    page = request.urlopen("http://{domain}/{relUrl}".format(domain=prog_item['domain'],
+                                                             relUrl=prog_item['relative_URL'])).read().decode('utf-8')
+    reg = re.compile("<span class=\"issueNumber\">(\d+)/(\d+)</span>")
+    prog_item['page_last_exist'] = int(reg.search(page).group(2))
+
 def add_missing_field(prog_item):
     add_field(prog_item, 'page_first'  , None)
     add_field(prog_item, 'page_current', 1)
@@ -41,6 +47,8 @@ def add_missing_field(prog_item):
     relative_URL = match_obj.group(3)
     add_field(prog_item, 'domain', domain)
     add_field(prog_item, 'relative_URL', relative_URL)
+
+    add_field(prog_item, 'page_last_exist', 0)
     
     if 'name' not in prog_item:
         page = request.urlopen("http://{domain}/{relUrl}".format(domain=domain,
@@ -50,8 +58,9 @@ def add_missing_field(prog_item):
             name = reg.search(page).group(1)
         except:
             name = prog_item['relative_URL'][1:]
-        add_field(prog_item, 'name', name)
+        prog_item['name'] = name
 
+ 
 def update_config(user_config, prog_config):
     for user_item in user_config:
         need_append = True
@@ -123,82 +132,69 @@ def save_image(image,item):
                                                            counter=item['page_current'],
                                                            ext=image.extension)))
 
-def get_next_page_URL(page):
-    try:
-        reg = re.compile(r"<a href=\"(\S+)\" class=\"button large comic-nav-next\">")
-        return reg.search(page).group(1)
-    except:
-        return None
-
 def download_comics(item):
     if not set_save_path(item):
         ERROR("Can't set path for comics \"{name}\"".format(name=item['name']))
         return
 
-    if item['page_first'] is not None:
-        item['page_current'] = item['page_first']
+    update_page_last_exist(item)
+
+    start_page = 0
+    stop_page = 0
+
+    start_page = item['page_first'] if   item['page_first'] is not None \
+                                    else item['page_current']
+    stop_page  = item['page_last'] if item['page_last'] is not None \
+                                   and item['page_last'] <= item['page_last_exist'] \
+                                   else item['page_last_exist']
 
     item['downloaded_in_this_session'] = 0
 
-    # small hack: when we start download page we set url with last saved
-    #             page value. It's help us to check that next page exist
-    #             (or we downloaded entire comics in previous session)
-    url = "https://{domain}/{name}/{page}".format(domain=item['domain'],
-                                                  name  =item['relative_URL'],
-                                                  page  =item['page_current'])
-    while url:
-        if item['page_last'] is None or item['page_current'] <= item['page_last']:
-            page  = get_page(url)
-            if page is None:
-                ERROR("Can't load page \"{url}\"".format(url=url))
-                return
-            # temp ->
-            # print(url)
-            # temp <-
-            url = get_next_page_URL(page)
+    for item['page_current'] in range(start_page, stop_page + 1):
+        url = "https://{domain}/{name}/{page}".format(domain=item['domain'],
+                                              name  =item['relative_URL'],
+                                              page  =item['page_current'])
+        page  = get_page(url)
+        if page is None:
+            ERROR("Can't load page \"{url}\"".format(url=url))
+            return
 
-            if url or item['downloaded_in_this_session'] != 0:
-                # if not url - we on the last page
-                # item['downloaded_in_this_session'] != 0 -- small hack:
-                #   if value == 0: we stop at this page in previous session
-                #                  and downlad image from it already
-                #   else: it's last page and we need to download it
-                image = get_image(page,item)
-                if image.data is not None and image.extension is not None:
-                    save_image(image,item)
-                    item['page_current'] += 1
-                    item['downloaded_in_this_session'] += 1
-        else:
-            break
-
-    
+        image = get_image(page,item)
+        if image.data is not None and image.extension is not None:
+            save_image(image,item)
+            item['downloaded_in_this_session'] += 1
 
 def thread_download_comics(threadQueue):
     while not stop:
         download_comics(threadQueue.get())
         threadQueue.task_done()
 
-def show_UI(config):
+def show_UI(config, delay):
     while not stop:
         # 80 - console width
-        # 12 - width of "xxxx (+yyyy)"
-        # where xxxx - current page, yyyy - new in this session
-        block_width = 80 - 12
+        # 17 - width of "xxxx/yyyy (+zzzz)", where:
+        # xxxx - current page, 
+        # yyyy - last existing page
+        # zzzz - new in this session
+        block_width = 80 - 17
         os.system('cls')
         for item in config:
-            print('{name:.<{block_width}}{current:.>4}({new:>+4})'.format(
+            print('{name:.<{block_width}}{current:.>4}/{last_existing:>4} ({new:>+4})'.format(
                 block_width=block_width,
                 name=item['name'],
                 current=item['page_current'],
+                last_existing=item['page_last_exist'],
                 new=item['downloaded_in_this_session']))
-        time.sleep(1)
+        time.sleep(delay)
 # ----------------------------------------------------------------------------
-
+import threading
 def main():
     USER_CONFIG_FILE = "user.config"
     PROG_CONFIG_FILE = "prog.config"
     
     MAX_THREADS = 5
+
+    UI_delay = 1    # one second
     # ------------------------------------------------------------------------
     try:
         user_config, prog_config = config_files.load(USER_CONFIG_FILE,
@@ -220,7 +216,7 @@ def main():
     for item in prog_config:
         threadQueue.put(item)
     
-    UI = Thread(target=show_UI, args=(prog_config,), daemon=True).start()
+    UI = Thread(target=show_UI, args=(prog_config,UI_delay), daemon=True).start()
 
     threadQueue.join()
     
@@ -228,6 +224,8 @@ def main():
     # ------------------------------------------------------------------------
     config_files.config.dump(prog_config, open('prog.config','w', encoding='utf-8'))
 
+    # small hack to enshure that UI thread stop it's working
+    time.sleep(UI_delay)
     exit = input("\nPress enter for exit...")
 # ----------------------------------------------------------------------------
 if __name__ == '__main__':
