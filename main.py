@@ -228,7 +228,7 @@ def main():
     # ------------------------------------------------------------------------
     config_files.config.dump(prog_config, open('prog.config','w', encoding='utf-8'))
 
-    exit = input("\nPress any key for exit...")
+    exit = input("\nPress enter for exit...")
 # ----------------------------------------------------------------------------
 if __name__ == '__main__':
     main()
