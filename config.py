@@ -47,7 +47,7 @@ class Config:
         return -1
 
 
-    def add_additional_fields(self, item):
+    def generate_comics_data(self, item):
         # 'domaint' and 'relative_URL' fields
         regex_URL = re.compile(r"http[s]?://((\S+.\w+)/([~\S]+))")
         match_obj = regex_URL.match(item['link'])
@@ -65,30 +65,31 @@ class Config:
             name = ''
 
         # Result
-        additional_fields = {'page_first': None,
-                             'page_current': 1,
-                             'page_last': None,
-                             'downloaded_in_this_session': 0,
-                             'domain': domain,
-                             'relative_URL': relative_URL,
-                             'page_last_exist': 0,
-                             'name': name}
+        genreated = {'page_first': None,
+                     'page_current': 1,
+                     'page_last': None,
+                     'downloaded_in_this_session': 0,
+                     'domain': domain,
+                     'relative_URL': relative_URL,
+                     'page_last_exist': 0,
+                     'name': name}
 
-        for key in additional_fields:
-            if key not in item:
-                item[key] = additional_fields[key]
+        item.update(genreated)
 
-# TODO: name "append" doesn't completely describe the function purpose
     def append(self,item):
-        self.data.append(item)
-        self.add_additional_fields(self.data[-1])
+        self.data.append({})
+        self.data[-1]['link'] = item['link']
 
     def update(self, other):
         for item in other.data:
             if item in self:
-                self.data[self.index('link',item['link'])].update(item)
+                index = self.index('link', item['link'])
             else:
                 self.append(item)
+                index = -1
+
+            self.generate_comics_data(self.data[index])
+            self.data[index].update(item)
 
 # ----------------------------------------------------------------------------
 
