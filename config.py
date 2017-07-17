@@ -57,12 +57,15 @@ class Config:
 
         # 'name' field
         if 'name' not in item:
-            regex_Name = re.compile("<meta property=\"og:title\" content=\"(.+)\"")
-            page = request.urlopen("http://{domain}/{relUrl}".format(domain=domain,
-                                                                     relUrl=relative_URL)).read().decode('utf-8')
-            name = regex_Name.search(page).group(1)
+            try:
+                regex_Name = re.compile("<meta property=\"og:title\" content=\"(.+)\"")
+                page = request.urlopen("http://{domain}/{relUrl}".format(domain=domain,
+                                                                         relUrl=relative_URL)).read().decode('utf-8')
+                name = regex_Name.search(page).group(1)
+            except:
+                name = relative_URL
         else:
-            name = ''
+            name = item['name']
 
         # Result
         genreated = {'page_first': None,
