@@ -165,7 +165,10 @@ def main():
     UI = Thread(target=show_UI, args=(prog_config,UI_delay), daemon=True).start()
 
     threadQueue.join()
-    
+
+    # small hack: UI have time to show updated information before thread stop
+    time.sleep(UI_delay)
+
     stop = True
     # small temporary hack:
     # if not set to zero 'downloaded_in_this_session' field - UI show wrong information
@@ -179,6 +182,8 @@ def main():
 
     # small hack to enshure that UI thread stop it's working
     time.sleep(UI_delay)
+    
+
     exit = input("\nPress enter for exit...")
 # ----------------------------------------------------------------------------
 
