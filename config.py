@@ -67,9 +67,14 @@ class Config:
         else:
             name = item['name']
 
+        if 'page_current' in item:
+            page_current = item['page_current']
+        else:
+            page_current = 1
+
         # Result
         genreated = {'page_first': None,
-                     'page_current': 1,
+                     'page_current': page_current,
                      'page_last': None,
                      'downloaded_in_this_session': 0,
                      'domain': domain,
