@@ -116,14 +116,20 @@ def show_UI(config, delay):
         # yyyy - last existing page
         # zzzz - new in this session
         block_width = 80 - 17
+
         os.system('cls')
+        # small hack: we use "output" string to reduce console flickering
+        #             but we lose in perfomance
+        output = ''
+
         for item in config.data:
-            print('{name:.<{block_width}}{current:.>4}/{last_existing:>4} ({new:>+4})'.format(
-                block_width=block_width,
-                name=item['name'],
-                current=item['page_current'],
-                last_existing=item['page_last_exist'],
-                new=item['downloaded_in_this_session']))
+            output += ('{name:.<{block_width}}{current:.>4}/{last_existing:>4} ({new:>+4})\n'.format(
+                            block_width=block_width,
+                            name=item['name'],
+                            current=item['page_current'],
+                            last_existing=item['page_last_exist'],
+                            new=item['downloaded_in_this_session']))
+        print(output)
         time.sleep(delay)
 
 # ----------------------------------------------------------------------------
@@ -133,7 +139,7 @@ def main():
     USER_CONFIG_FILE = "user.config"
     PROG_CONFIG_FILE = "prog.config"
     
-    MAX_THREADS = 10
+    MAX_THREADS = 5
 
     UI_delay = 1    # one second
 
