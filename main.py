@@ -138,8 +138,8 @@ def main():
     UI_delay = 1    # one second
 
 # Open, read and update config files
-    user_config = Config(USER_CONFIG_FILE)
-    prog_config = Config(PROG_CONFIG_FILE)
+    user_config = Config(USER_CONFIG_FILE,'user')
+    prog_config = Config(PROG_CONFIG_FILE,'prog')
 
     if user_config.data is None or \
        prog_config.data is None:

@@ -3,7 +3,8 @@ import re
 import urllib.request as request
 
 class Config:
-    def __init__(self, file):
+    def __init__(self, file, type_='user'):
+        self.type_ = type_
         try:
             self.load(file)
         except:
@@ -16,13 +17,16 @@ class Config:
         return False
 
     def generate_default(self):
-        self.data = [{"link": "https://acomics.ru/~4pairs",
-                      "name": "4 пары",
-                      "page_last": 10}]
+        if self.type_ == 'user':
+            self.data = [{"link": "https://acomics.ru/~4pairs",
+                          "name": "4 пары",
+                          "page_last": 10}]
+        if self.type_ == 'prog':
+            self.data = []
 
     def save(self,file):
         with open(file,'w', encoding='utf-8') as fp:
-            self.dump(self.data, fp)
+            self.dump(fp)
 
     def load(self, file):
         try:
