@@ -1,5 +1,6 @@
 from config import Config
-from error import ERROR
+from error  import ERROR
+from image  import Image
 
 import json
 import re
@@ -97,38 +98,74 @@ def get_page(url):
     except:
         return None
 
-class Image:
-    def __init__(self, data, extension):
-        self.data      = data
-        self.extension = extension
+# class Image:
+#     def __init__(self, data, extension):
+#         self.data      = data
+#         self.extension = extension
 
-def get_image(page,item):
-    reg = re.compile(r"id=\"mainImage\" src=\"(\S+\.(\w+))\"")
+# def get_image(page,item):
+#     reg = re.compile(r"id=\"mainImage\" src=\"(\S+\.(\w+))\"")
+#     try:
+#         result = reg.search(page)
+#         image_URL = "http://{domain}{rel_URL}".format(domain =item['domain'],
+#                                                       rel_URL=result.group(1))
+#         extension = result.group(2)
+#         return(Image(request.urlopen(image_URL).read(),extension))
+#     except:
+#         ERROR("Can't get image from the page")
+#         return Image(None, None)
+
+# def save_image(image,item):
+#     try:
+#         file = open("{domain}/{comics_name}/{file_name}".format(
+#             domain     =item['domain'],
+#             comics_name=item['name'],
+#             file_name  ="{name}_{counter:03}.{ext}".format(name=item['name'],
+#                                                            counter=item['page_current'],
+#                                                            ext=image.extension)),'wb')
+#         file.write(image.data)
+#         file.close()
+#     except:
+#         ERROR("Can't save image \"{file_name}\"".format(\
+#             file_name  ="{name}_{counter:03}.{ext}".format(name=item['name'],
+#                                                            counter=item['page_current'],
+#                                                            ext=image.extension)))
+
+def process_image(page, regex, item):
+    image = Image()
+
     try:
-        result = reg.search(page)
-        image_URL = "http://{domain}{rel_URL}".format(domain =item['domain'],
-                                                      rel_URL=result.group(1))
-        extension = result.group(2)
-        return(Image(request.urlopen(image_URL).read(),extension))
+        image.find(page, regex)
     except:
-        ERROR("Can't get image from the page")
-        return Image(None, None)
+        ERROR("Can't find image relative url on the page")
+        return False
 
-def save_image(image,item):
     try:
-        file = open("{domain}/{comics_name}/{file_name}".format(
+        image.url("http://{domain}{relUrl}".format(domain =item['domain'],
+                                                   relUrl =image._relUrl))
+    except:
+        ERROR("Can't generate full url for the image")
+        return False        
+
+    try:
+        image.get()
+    except:
+        ERROR("Can't get image by the url")
+        return False
+
+    try:
+        path = "{domain}/{comics_name}/{file_name}".format(
             domain     =item['domain'],
             comics_name=item['name'],
             file_name  ="{name}_{counter:03}.{ext}".format(name=item['name'],
                                                            counter=item['page_current'],
-                                                           ext=image.extension)),'wb')
-        file.write(image.data)
-        file.close()
+                                                           ext=image._ext))
+        image.save(path)
     except:
-        ERROR("Can't save image \"{file_name}\"".format(\
-            file_name  ="{name}_{counter:03}.{ext}".format(name=item['name'],
-                                                           counter=item['page_current'],
-                                                           ext=image.extension)))
+        ERROR("Can't save the image")
+        return False
+
+    return True
 
 def download_comics(item):
     if not set_save_path(item):
@@ -136,6 +173,8 @@ def download_comics(item):
         return
 
     update_page_last_exist(item)
+
+    regex_Image = re.compile(r"id=\"mainImage\" src=\"(\S+\.(\w+))\"")
 
     start_page = 0
     stop_page = 0
@@ -157,9 +196,11 @@ def download_comics(item):
             ERROR("Can't load page \"{url}\"".format(url=url))
             return
 
-        image = get_image(page,item)
-        if image.data is not None and image.extension is not None:
-            save_image(image,item)
+        # image = get_image(page,item)
+        # if image.data is not None and image.extension is not None:
+        #     save_image(image,item)
+        #     item['downloaded_in_this_session'] += 1
+        if process_image(page, regex_Image, item):
             item['downloaded_in_this_session'] += 1
 
 def thread_download_comics(threadQueue):
