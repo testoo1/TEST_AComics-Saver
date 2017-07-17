@@ -50,7 +50,7 @@ def process_image(page, regex, item):
 
 
 def check_last(item):
-    url = "http://{domain}/{relUrl}".format(domain=item['domain'],
+    url = "http://{domain}/{relUrl}/1".format(domain=item['domain'],
                                             relUrl=item['relative_URL'])
     try:
         page = request.urlopen(url).read().decode('utf-8')
@@ -133,7 +133,7 @@ def main():
     USER_CONFIG_FILE = "user.config"
     PROG_CONFIG_FILE = "prog.config"
     
-    MAX_THREADS = 5
+    MAX_THREADS = 10
 
     UI_delay = 1    # one second
 
