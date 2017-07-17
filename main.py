@@ -85,6 +85,9 @@ def download_comics(item):
     start = get_start_page(item)
     stop  = get_stop_page(item)
 
+    if item['page_current'] == stop:
+        return
+
     # TODO: Move all regex dependent from domain into separate function
     regex_Image = re.compile(r"id=\"mainImage\" src=\"(\S+\.(\w+))\"")
 
