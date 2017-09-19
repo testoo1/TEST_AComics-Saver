@@ -1,5 +1,5 @@
 from config import Config
-from error  import ERROR
+from error  import Error
 from image  import Image
 from path   import Path
 
@@ -11,6 +11,11 @@ import urllib.request as request
 from threading import Thread
 from queue import Queue
 
+# small temporary hack:
+# allow to change error handling implementation
+# without changing the ERROR function call
+TEMP_ERROR_OBJ = Error()
+ERROR = TEMP_ERROR_OBJ.ERROR
 
 def process_image(page, regex, item):
     image = Image()

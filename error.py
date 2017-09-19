@@ -1,4 +1,7 @@
-def ERROR(text):
-    print('-'*78)
-    print("ERROR: {}".format(text))
-    print('-'*78)    
+class Error:
+    def __init__(self):
+        self.target = open("error.log", 'w')
+
+    def ERROR(self, message):
+        self.target.write(message + '\n')
+        self.target.flush();
