@@ -119,12 +119,12 @@ def thread_download_comics(threadQueue):
 
 def show_UI(config, delay):
     while not stop:
-        # 80 - console width
+        # 79 - console width
         # 17 - width of "xxxx/yyyy (+zzzz)", where:
         # xxxx - current page, 
         # yyyy - last existing page
         # zzzz - new in this session
-        block_width = 80 - 17
+        block_width = 79 - 17
 
         os.system('cls')
         # small hack: we use "output" string to reduce console flickering
