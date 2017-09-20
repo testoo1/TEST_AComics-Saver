@@ -45,8 +45,8 @@ class Config:
     def define_name(self, item):
         regex_name = re.compile("<meta property=\"og:title\" content=\"(.+)\"")
         try:
-            page = request.urlopen(item['link'])
-            name = regex_name.search(page).group(1)        
+            page = request.urlopen(item['link']).read().decode('utf-8')
+            name = regex_name.search(page).group(1)     
         except:
             raise
         return name
