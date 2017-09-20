@@ -44,7 +44,7 @@ def process_image(page, regex, item):
         path = "{domain}/{comics_name}/{file_name}".format(
             domain     =item['domain'],
             comics_name=item['name'],
-            file_name  ="{name}_{counter:03}.{ext}".format(name=item['name'],
+            file_name  ="{name}_{counter:04}.{ext}".format(name=item['name'],
                                                            counter=item['page_current'],
                                                            ext=image._ext))
         image.save(path)
