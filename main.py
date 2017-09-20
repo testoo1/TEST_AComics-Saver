@@ -11,6 +11,7 @@ import urllib.request as request
 from threading import Thread
 from queue import Queue
 
+from json import JSONDecodeError
 # small temporary hack:
 # allow to change error handling implementation
 # without changing the ERROR function call
@@ -140,6 +141,18 @@ def show_UI(config, delay):
         print(output)
         time.sleep(delay)
 
+def open_file_error(file_name, error_obj):
+    error_msg = ("CRITICAL ERROR:\n"
+                 "\tfile \"{file_name}\" contain invalid json and can't be open."
+                 .format(file_name = file_name))
+    print(error_msg)
+    ERROR(("{msg}\n\n"
+           "\tJSON msg:\n"
+           "\t\tline {json_lineno}: {json_msg}"
+           .format(msg=error_msg,
+                   json_lineno = error_obj.lineno,
+                   json_msg    = error_obj.msg)))
+
 # ----------------------------------------------------------------------------
 
 def main():
@@ -152,13 +165,17 @@ def main():
     UI_delay = 1    # one second
 
 # Open, read and update config files
-    user_config = Config(USER_CONFIG_FILE,'user')
-    prog_config = Config(PROG_CONFIG_FILE,'prog')
+    try:
+        file_name = USER_CONFIG_FILE
+        user_config = Config(file_name,'user')
 
-    if user_config.data is None or \
-       prog_config.data is None:
-        ERROR("Can't open (or create) config files")
-        return        
+        file_name = PROG_CONFIG_FILE
+        prog_config = Config(file_name,'prog')
+
+    except JSONDecodeError as error:
+        open_file_error(file_name, error)
+        exit = input("\nPress enter for exit...")
+        return
 
     prog_config.update(user_config)
     with open('prog.config','w', encoding='utf-8') as fp:

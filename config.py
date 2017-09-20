@@ -7,8 +7,8 @@ class Config:
         self.type_ = type_
         try:
             self.load(file)
-        except:
-            self.data = None
+        except json.JSONDecodeError:
+            raise
 
     def __contains__(self, item):
         for element in self.data:
@@ -31,6 +31,9 @@ class Config:
     def load(self, file):
         try:
             self.data = json.load(open(file, encoding='utf-8'))
+        except json.JSONDecodeError as error:
+            raise
+
         except FileNotFoundError:
             self.generate_default()
             self.save(file)
