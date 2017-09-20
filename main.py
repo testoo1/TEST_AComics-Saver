@@ -164,7 +164,8 @@ def main():
 
     UI_delay = 1    # one second
 
-# Open, read and update config files
+# Work with config files
+    # Open
     try:
         file_name = USER_CONFIG_FILE
         user_config = Config(file_name,'user')
@@ -177,10 +178,13 @@ def main():
         exit = input("\nPress enter for exit...")
         return
 
-    prog_config.update(user_config)
-    with open('prog.config','w', encoding='utf-8') as fp:
+    # Update
+    prog_config.update_with(user_config)
+
+    # Save prog.config
+    with open(PROG_CONFIG_FILE,'w', encoding='utf-8') as fp:
         prog_config.dump(fp)
-    
+
 # Download comics (using multithreading)
     threadQueue = Queue()
     
@@ -213,7 +217,6 @@ def main():
 
     # small hack to enshure that UI thread stop it's working
     time.sleep(UI_delay)
-    
 
     exit = input("\nPress enter for exit...")
 # ----------------------------------------------------------------------------
