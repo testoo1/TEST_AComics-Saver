@@ -97,7 +97,7 @@ class Config:
             item_index = self.index(comics_item)
 
             if item_index is None:
-                self.data.insert(len(self.data), comics_item)
+                self.data.insert(len(self.data), comics_item.copy())
                 item_index = -1 # point to the last element
              
             # inelegant problem solution:
